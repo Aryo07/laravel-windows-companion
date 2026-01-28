@@ -1,0 +1,21 @@
+# Git repository files - tidak diperlukan di dalam container
+.git
+.gitignore
+
+# Docker Compose file - tidak perlu di-copy ke dalam image
+docker-compose.yml
+docker-compose.*.yml
+
+# Environment files - akan di-mount sebagai volume atau di-set via environment variables
+.env
+.env.*
+
+# IDE specific files - tidak relevan di dalam container
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS specific files - tidak relevan di dalam container
+.DS_Store
+Thumbs.db

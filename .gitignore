@@ -1,0 +1,19 @@
+# Environment Files (Protect Secrets)
+.env
+.env.*
+!.env.docker
+!.env.example
+
+# IDE & Editor Files
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# OS Specific Files
+.DS_Store
+Thumbs.db
+Desktop.ini
+
+# Logs
+*.log

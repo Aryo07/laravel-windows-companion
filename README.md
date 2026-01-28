@@ -6,9 +6,9 @@ Project ini didesain khusus sebagai **"The Missing Piece"** untuk pengguna **Win
 
 Jika Anda developer Laravel di Windows, Anda pasti merasakan keterbatasan ini dibandingkan pengguna Mac/Linux:
 
-1.  **Redis Tidak Support Windows**: Microsoft/Redis resmi menghentikan support native Redis di Windows bertahun-tahun lalu. Menginstallnya via MSI jadul sangat berisiko dan tidak update.
-2.  **Ribetnya Background Service**: Menjalankan Mailpit, Meilisearch, atau Redis secara manual (klik binary `.exe`) setiap kali restart laptop sangat melelahkan.
-3.  **Konflik Port**: Install MySQL 8.0 dan MariaDB 10.x sekaligus di Windows seringkali menyebabkan konflik service yang memusingkan.
+1. **Redis Tidak Support Windows**: Microsoft/Redis resmi menghentikan support native Redis di Windows bertahun-tahun lalu. Menginstallnya via MSI jadul sangat berisiko dan tidak update.
+2. **Ribetnya Background Service**: Menjalankan Mailpit, Meilisearch, atau Redis secara manual (klik binary `.exe`) setiap kali restart laptop sangat melelahkan.
+3. **Konflik Port**: Install MySQL 8.0 dan MariaDB 10.x sekaligus di Windows seringkali menyebabkan konflik service yang memusingkan.
 
 **Solusinya:**
 Gunakan Docker Tools ini sebagai pendamping **Laravel Herd** Anda!
@@ -31,34 +31,44 @@ Biarkan Herd mengurus PHP & Nginx (yang sudah sangat cepat), dan biarkan Docker 
 
 Sebelum memulai, pastikan Anda sudah menginstall tools berikut:
 
-| Tools | Deskripsi | Link Download |
-| :--- | :--- | :--- |
-| **Laravel Herd** | PHP Environment tercepat untuk Windows (pengganti XAMPP/Laragon). | [Download Herd for Windows](https://herd.laravel.com/windows) |
-| **Docker Desktop** | Cara termudah menjalankan Docker di Windows. | [Download Docker Desktop](https://www.docker.com/products/docker-desktop/) |
-| **Podman Desktop** | Alternatif Docker (Open Source) yang lebih ringan. | [Download Podman Desktop](https://podman-desktop.io/downloads) |
+| Tools                    | Deskripsi                                                         | Link Download                                                           |
+| :----------------------- | :---------------------------------------------------------------- | :---------------------------------------------------------------------- |
+| **Laravel Herd**   | PHP Environment tercepat untuk Windows (pengganti XAMPP/Laragon). | [Download Herd for Windows](https://herd.laravel.com/windows)              |
+| **Docker Desktop** | Cara termudah menjalankan Docker di Windows.                      | [Download Docker Desktop](https://www.docker.com/products/docker-desktop/) |
+| **Podman Desktop** | Alternatif Docker (Open Source) yang lebih ringan.                | [Download Podman Desktop](https://podman-desktop.io/downloads)             |
 
 ## Cara Install / Menjalankan
 
 Berikut langkah-langkah lengkap dari awal:
 
-1.  **Clone Repository Ini**
-    Buka terminal (PowerShell / Git Bash), lalu jalankan:
-    ```bash
-    git clone https://github.com/username/laravel-windows-companion.git
-    cd laravel-windows-companion
-    ```
+1. **Clone Repository Ini**
+   Buka terminal (PowerShell / Git Bash), lalu jalankan:
 
-2.  **Jalankan Docker**
-    Pastikan aplikasi **Docker Desktop** sudah berjalan, lalu jalankan perintah:
-    ```bash
-    docker compose up -d
-    ```
-    *(Tunggu beberapa saat hingga proses download image selesai)*
+   ```bash
+   git clone https://github.com/username/laravel-windows-companion.git
+   cd laravel-windows-companion
+   ```
+2. **Setup Environment**
+   Copy file template environment agar Anda bisa mengubah settingan port atau password:
 
-3.  **Selesai!**
-    Semua service sekarang sudah berjalan di background.
-    - Cek status: `docker compose ps`
-    - Cek Mailpit: Buka browser ke `http://localhost:8025`
+   ```bash
+   cp .env.docker .env
+   ```
+
+   *Silakan edit file `.env` jika ingin mengubah Port atau Password default.*
+3. **Jalankan Docker**
+   Pastikan aplikasi **Docker Desktop** sudah berjalan, lalu jalankan perintah:
+
+   ```bash
+   docker compose up -d
+   ```
+
+   *(Tunggu beberapa saat hingga proses download image selesai)*
+4. **Selesai!**
+   Semua service sekarang sudah berjalan di background.
+
+   - Cek status: `docker compose ps`
+   - Cek Mailpit: Buka browser ke `http://localhost:8025`
 
 ## Cara Pakai di Project Laravel (.env)
 
@@ -67,6 +77,7 @@ Copy-paste konfigurasi berikut ke file `.env` project Laravel Anda di Windows.
 ### 1. Database (Pilih salah satu)
 
 **Opsi A: Menggunakan MySQL 8.0**
+
 ```env
 DB_CONNECTION=mysql
 DB_HOST=127.0.0.1
@@ -77,6 +88,7 @@ DB_PASSWORD=secret
 ```
 
 **Opsi B: Menggunakan MariaDB 10.11**
+
 ```env
 DB_CONNECTION=mariadb
 DB_HOST=127.0.0.1
@@ -122,8 +134,19 @@ MAIL_FROM_NAME="${APP_NAME}"
 
 ## Konfigurasi Lanjutan (Optional)
 
-- **Ganti Password**: Copy file `.env.docker` menjadi `.env` di folder ini, lalu ubah isinya.
+- **Ubah Port & Password**: Edit file `.env` yang sudah Anda buat tadi.
 - **Tuning Database**:
   - Edit `docker/mysql/my.cnf` (MySQL)
   - Edit `docker/mariadb/my.cnf` (MariaDB)
 - **Restart**: Setiap mengubah config, jalankan `docker compose restart`.
+
+## 💡 Tips: Mengelola Banyak Database
+
+Password dan Nama Database di file `.env` hanya digunakan untuk **Initial Setup** (saat container PERTAMA kali dibuat).
+
+Untuk project kedua, ketiga, dst:
+
+1. Buka DB Client (HeidiSQL, DBeaver, TablePlus).
+2. Koneksi menggunakan `root` (password: `root`).
+3. Buat database baru secara manual: `CREATE DATABASE project_baru;`
+4. Di project Laravel baru, set `DB_DATABASE=project_baru` dst., bisa lihat **Cara Pakai di Project Laravel (.env)** di atas.

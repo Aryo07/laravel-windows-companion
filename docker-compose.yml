@@ -7,7 +7,7 @@ services:
   # MySQL 8 (Default)
   # =========================
   mysql:
-    image: docker.io/library/mysql:8.0
+    build: ./docker/mysql
     container_name: mysql8
     restart: unless-stopped
     ports:
@@ -20,19 +20,20 @@ services:
       TZ: Asia/Jakarta
     volumes:
       - mysql8_data:/var/lib/mysql
-      - ./docker/mysql/my.cnf:/etc/mysql/conf.d/custom.cnf:ro
-    command: >
-      --default-authentication-plugin=mysql_native_password
-      --character-set-server=utf8mb4
-      --collation-server=utf8mb4_unicode_ci
+    command: --default-authentication-plugin=mysql_native_password
     networks:
       - laravel
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
 
   # =========================
   # MariaDB 10.11 (LTS)
   # =========================
   mariadb:
-    image: docker.io/library/mariadb:10.11
+    build: ./docker/mariadb
     container_name: mariadb1011
     restart: unless-stopped
     ports:
@@ -45,9 +46,13 @@ services:
       TZ: Asia/Jakarta
     volumes:
       - mariadb1011_data:/var/lib/mysql
-      - ./docker/mariadb/my.cnf:/etc/mysql/conf.d/custom.cnf:ro
     networks:
       - laravel
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
 
   # =========================
   # Redis
@@ -58,12 +63,22 @@ services:
     restart: unless-stopped
     ports:
       - "${REDIS_PORT:-6379}:6379" # Jika port tidak diisi di .env, maka akan menggunakan port 6379
-    command: redis-server /usr/local/etc/redis/redis.conf
+    # Batasan Opsional (Hapus komentar di blok perintah dengan HATI-HATI jika diperlukan pindahkan ke dalam command atur sesuai kebutuhan):
+    # --maxmemory 512mb
+    # --maxmemory-policy allkeys-lru
+    command: >
+      redis-server
+      --appendonly yes
+      --appendfsync everysec
     volumes:
       - redis_data:/data
-      - ./docker/redis/redis.conf:/usr/local/etc/redis/redis.conf:ro
     networks:
       - laravel
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
 
   # =========================
   # Mailpit (SMTP Catcher)
@@ -73,13 +88,18 @@ services:
     container_name: mailpit
     restart: unless-stopped
     ports:
-      - "${MAILPIT_SMTP_PORT:-1025}:1025"   # Jika port tidak diisi di .env, maka akan menggunakan port 1025 (SMTP)
-      - "${MAILPIT_WEB_PORT:-8025}:8025"   # Jika port tidak diisi di .env, maka akan menggunakan port 8025 (Web UI)
+      - "${MAILPIT_SMTP_PORT:-1025}:1025" # Jika port tidak diisi di .env, maka akan menggunakan port 1025 (SMTP)
+      - "${MAILPIT_WEB_PORT:-8025}:8025" # Jika port tidak diisi di .env, maka akan menggunakan port 8025 (Web UI)
     environment:
       MP_SMTP_AUTH_ACCEPT_ANY: "true"
       MP_SMTP_AUTH_ALLOW_INSECURE: "true"
     networks:
       - laravel
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
 
 # =========================
 # Networks

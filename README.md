@@ -136,9 +136,9 @@ MAIL_FROM_NAME="${APP_NAME}"
 
 - **Ubah Port & Password**: Edit file `.env` yang sudah Anda buat tadi.
 - **Tuning Database**:
-  - Edit `docker/mysql/my.cnf` (MySQL)
-  - Edit `docker/mariadb/my.cnf` (MariaDB)
-- **Restart**: Setiap mengubah config, jalankan `docker compose restart`.
+  - Konfigurasi ada di file `docker/mysql/my.cnf` dan `docker/mariadb/my.cnf`.
+  - Berkat penggunaan `Dockerfile`, file ini sekarang **AMAN** dan pasti terbaca (permission fixed).
+- **Restart**: Setiap mengubah config, jalankan `docker compose up -d --build`.
 
 ## 💡 Tips: Mengelola Banyak Database
 
@@ -150,3 +150,79 @@ Untuk project kedua, ketiga, dst:
 2. Koneksi menggunakan `root` (password: `root`).
 3. Buat database baru secara manual: `CREATE DATABASE project_baru;`
 4. Di project Laravel baru, set `DB_DATABASE=project_baru` dst., bisa lihat **Cara Pakai di Project Laravel (.env)** di atas.
+
+---
+
+## 🚀 Perintah Docker / Podman Penting
+
+Jika Anda menggunakan **Podman**, cukup ganti kata `docker` dengan `podman` (misal: `podman compose up -d`).
+
+| Perintah                   | Fungsi                                                                                |
+| :------------------------- | :------------------------------------------------------------------------------------ |
+| `docker compose up -d`   | Menjalankan semua service di background (mode daemon).                                |
+| `docker compose down`    | Mematikan dan**menghapus** container (Data database AMAN karena ada di Volume). |
+| `docker compose start`   | Menyalakan kembali container yang berhenti (tanpa membuat ulang).                     |
+| `docker compose stop`    | Memberhentikan container sementara.                                                   |
+| `docker compose restart` | Restart container (berguna saat ubah config).                                         |
+| `docker compose ps`      | Melihat status container yang sedang berjalan.                                        |
+| `docker compose logs -f` | Melihat log output secara real-time (Ctrl+C untuk keluar).                            |
+
+---
+
+## 🛡️ Optimasi Disk & Kesehatan NVMe (PENTING)
+
+Konfigurasi ini **SUDAH diterapkan otomatis** di repository ini demi menjaga kesehatan SSD/NVMe laptop Anda dan menghemat disk space.
+
+### 1. Anti Disk Penuh (Log Rotation)
+
+Seringkali Docker memakan disk puluhan GB hanya untuk file log sampah.
+Di konfigurasi ini, kami membatasi log secara ketat di `docker-compose.yml`:
+
+- **Max Size:** 10MB per file.
+- **Max File:** 3 file rotasi.
+- **Efek:** Total log per service maksimal hanya **30MB**. Log lama otomatis dihapus. Disk Anda **AMAN** dari kepenuhan.
+
+### 2. Anti NVMe Rusak (Database Buffer)
+
+Secara default, MySQL/MariaDB melakukan "Physical Write" ke SSD setiap kali ada transaksi (insert/update). Ini bisa membunuh umur (TBW) NVMe Anda dengan cepat saat development.
+
+Kami mengubah setting di `my.cnf` menjadi:
+
+```ini
+innodb_flush_log_at_trx_commit = 2
+```
+
+- **Cara Kerja:** Transaksi disimpan di RAM dulu, baru ditulis ke fisik NVMe setiap **1 detik sekali**.
+- **Efek:** Mengurangi aktivitas *write* fisik hingga **100x lipat**. NVMe jauh lebih awet & database lebih responsif.
+- **Trade-off:** Jika PC mati lampu mendadak, data transaksi **1 detik terakhir** mungkin hilang. (Sangat aman untuk Local Development).
+
+---
+
+## 🔄 Cara Update Aplikasi / Image
+
+Aplikasi seperti MySQL, Redis, dan Mailpit terus mendapatkan update (perbaikan bug / fitur baru).
+Untuk mengupdate container Anda ke versi terbaru (sesuai tag yang ada di `docker-compose.yml`):
+
+1. **Download Image Base Terbaru & Build Ulang:**
+
+   ```bash
+   docker compose pull
+   docker compose build --no-cache
+
+   atau (gunakan dengan hati-hati)
+   podman compose up -d --build --force-recreate
+   ```
+   *(Penting: Karena sekarang kita pakai config custom, kita harus melakukan `build` ulang setiap ada update)*.
+2. **Terapkan Update:**
+   Re-create container:
+
+   ```bash
+   docker compose up -d
+   ```
+   *(Data database tetap **AMAN**)*.
+3. **Hapus Image Lama (Bersih-bersih):**
+   Setelah update, image lama biasanya jadi "dangling" (tidak terpakai). Hapus untuk hemat disk:
+
+   ```bash
+   docker image prune -f
+   ```

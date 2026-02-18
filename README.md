@@ -24,6 +24,7 @@ Biarkan Herd mengurus PHP & Nginx (yang sudah sangat cepat), dan biarkan Docker 
 | **MariaDB 10.11** | **3389**                                    | `127.0.0.1:3389`                          | `laravel` / `secret` |
 | **Redis**         | **6379**                                    | `127.0.0.1:6379`                          | (No Password)            |
 | **Mailpit**       | **8025** (Web)`<br>`**1025** (SMTP) | [http://localhost:8025](http://localhost:8025) | -                        |
+| **Nexterm**       | **6989**                                    | [http://localhost:6989](http://localhost:6989) | (Setup di UI)            |
 
 > **Catatan:** Password Root untuk MySQL/MariaDB adalah `root`
 
@@ -59,8 +60,16 @@ Berikut langkah-langkah lengkap dari awal:
 3. **Jalankan Docker**
    Pastikan aplikasi **Docker Desktop** sudah berjalan, lalu jalankan perintah:
 
+   ```powershell
+   ./setup.ps1
+   ```
+
+   *Script ini akan otomatis mendeteksi Docker/Podman, melakukan pull image dengan progress bar, build config, dan menjalankan container.*
+
+   **Alternatif Manual:**
+   Jika tidak ingin menggunakan script, jalankan:
    ```bash
-   docker compose up -d
+   podman compose up -d
    ```
 
    *(Tunggu beberapa saat hingga proses download image selesai)*
@@ -159,6 +168,7 @@ Jika Anda menggunakan **Podman**, cukup ganti kata `docker` dengan `podman` (mis
 
 | Perintah                   | Fungsi                                                                                |
 | :------------------------- | :------------------------------------------------------------------------------------ |
+| `./setup.ps1`            | **Rekomendasi:** Install/Re-install otomatis dengan progress bar & fix timeout.       |
 | `docker compose up -d`   | Menjalankan semua service di background (mode daemon).                                |
 | `docker compose down`    | Mematikan dan**menghapus** container (Data database AMAN karena ada di Volume). |
 | `docker compose start`   | Menyalakan kembali container yang berhenti (tanpa membuat ulang).                     |

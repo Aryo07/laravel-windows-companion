@@ -101,6 +101,27 @@ services:
         max-size: "10m"
         max-file: "3"
 
+  # =========================
+  # Nexterm (Web Terminal)
+  # =========================
+  nexterm:
+    image: germannewsmaker/nexterm:latest
+    container_name: nexterm
+    restart: unless-stopped
+    ports:
+      - "${NEXTERM_PORT:-6989}:6989" # Jika port tidak diisi di .env, maka akan menggunakan port 6989
+    environment:
+      - ENCRYPTION_KEY=${NEXTERM_ENCRYPTION_KEY}
+    volumes:
+      - nexterm_data:/app/data
+    networks:
+      - laravel
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+
 # =========================
 # Networks
 # =========================
@@ -115,3 +136,4 @@ volumes:
   mysql8_data:
   mariadb1011_data:
   redis_data:
+  nexterm_data:
